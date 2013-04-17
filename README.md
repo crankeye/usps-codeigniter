@@ -6,8 +6,9 @@ A Codeigniter library which integrates with the USPS shipping and address verifi
 Installation
 ------------
 1. Unpack the contents into your system folder.
-2. Edit the /application/config/usps.php and change the 'user_id' to the user id supplied by USPS when you registered for your WebTools account.
-***Note:*** *the Test API is enabled by default. Set 'test' to FALSE to enable the production API *
+2. Edit the /application/config/usps.php and change the "user_id" to the user id supplied by USPS when you registered for your WebTools account.
+
+***Note:*** *the Test API is enabled by default. Set "test" to FALSE to enable the production API*
 
 Examples
 --------
@@ -92,8 +93,8 @@ Examples
 License
 -------
 
-View the [OSL-3.0](http://opensource.org/licenses/OSL-3.0).
+View the [OSL-3.0](http://opensource.org/licenses/OSL-3.0)
 
 Documentation
 ----------------------
-View the [USPS API Documentation](https://www.usps.com/business/web-tools-apis/address-information-v3-1d.htm).
+View the [USPS API Documentation](https://www.usps.com/business/web-tools-apis/address-information-v3-1d.htm)
