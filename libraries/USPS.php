@@ -169,6 +169,60 @@ class USPS {
 	return $this->_request('CityStateLookup',$xml);
   }
   
+  /**
+   * Shipping Rate Lookup
+   * @docs: https://www.usps.com/business/web-tools-apis/rate-calculators-v1-7a.htm
+   * @docs: https://www.usps.com/business/web-tools-apis/price-calculators.htm
+   * @parameters: arrays of packages containing: service type (if first class, first_class_type as well),
+   * zip origination, zip destination, pounds, ounces, container type, size
+   * size = REGULAR or LARGE
+   * service = PRIORITY, EXPRESS, FIRST CLASS, MEDIA, etc.
+   * if service == FIRST CLASS, then: first_class_type is required
+   * container = RECTANGULAR, NONRECTANGULAR or FLAT RATE BOX
+   * zip origination
+   * zip destination
+   * pounds
+   * ounces
+   * @access public
+   * @return simple xml object
+   */
+  function shipping_rate_lookup($packages = array())
+  {	
+	$xml = '<RateV4Request USERID="'.$this->user_id.'">';
+        $xml .= '<Revision/>';
+	$index = 1;
+	foreach($packages as $package)
+	{
+                $xml .= '<Package ID="'.$index.'">';
+		$xml .= '<Service>'.strtoupper($package['service']).'</Service>';
+                if (strtoupper($package['service']) == "FIRST CLASS"){
+                    $xml .= '<FirstClassMailType>'.(!empty($package['first_class_type']) ? strtoupper($package['first_class_type']) : 'PACKAGE SERVICE').'</FirstClassMailType>';
+                }
+		$xml .= '<ZipOrigination>'.$package['zip_origination'].'</ZipOrigination>';
+                $xml .= '<ZipDestination>'.$package['zip_destination'].'</ZipDestination>';
+                $xml .= '<Pounds>'.(!empty($package['pounds']) ? $package['pounds'] : '0').'</Pounds>';
+                $xml .= '<Ounces>'.(!empty($package['ounces']) ? $package['ounces'] : '0').'</Ounces>';
+                $xml .= '<Container>'.strtoupper($package['container']).'</Container>';
+                $xml .= '<Size>'.strtoupper($package['size']).'</Size>';
+                
+                if (!empty($package['width']) && $package['width'] != 0){
+                    $xml .= '<Width>'.$package['width'].'</Width>';
+                }
+                if (!empty($package['length']) && $package['length'] != 0){
+                    $xml .= '<Length>'.$package['length'].'</Length>';
+                }
+                if (!empty($package['height']) && $package['height'] != 0){
+                    $xml .= '<Height>'.$package['height'].'</Height>';
+                }
+                
+                $xml .= '</Package>';
+		$index++;
+	}
+
+	$xml .= '</RateV4Request>';
+	return $this->_request('RateV4',$xml);
+  }
+  
   
    /**
    * Request
@@ -181,12 +235,12 @@ class USPS {
 	$protocol = (($this->secure AND !$this->test) ? 'https' : 'http');
 	$host = (($this->secure AND !$this->test) ? $this->secure_host : $this->host);
 	$api = ($this->test ? $this->test_api : $this->prod_api);
-    $ch = curl_init($protocol. '://'. $host .'/'. $api .'/?API='. $function .'&XML='.urlencode($xml));
-    curl_setopt($ch, CURLOPT_HEADER, false);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-    $output = curl_exec($ch);
-    curl_close($ch);
+    	$ch = curl_init($protocol. '://'. $host .'/'. $api .'/?API='. $function .'&XML='.urlencode($xml));
+    	curl_setopt($ch, CURLOPT_HEADER, false);
+    	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    	$output = curl_exec($ch);
+    	curl_close($ch);
     
 	print_r($protocol. '://'. $host .'/'. $api .'/?API='. $function .'&XML='.urlencode($xml));
 	print_r($output);
