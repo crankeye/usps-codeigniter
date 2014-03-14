@@ -224,6 +224,97 @@ class USPS {
   }
   
   
+ /**
+   * Shipping Labels
+   * @desc Gets PDF generated shipping label and tracking information
+   * @docs https://www.usps.com/business/web-tools-apis/usps-tracking-v3-3.htm
+   * @parameters $from (array), $to (array), $weight_in_ounces, $service_type, $dimensions (array), $container, $size, $insured_amount
+   * $from = array(
+   *            'from_name' => 'John Smith',
+   *            'from_firm' => 'ABC Inc.',
+   *            'from_address1' => '123 Main St.',
+   *            'from_address2' => 'Suite 100',
+   *            'from_city' => 'Anytown',
+   *            'from_state' => 'PA',
+   *            'from_zip5' => '12345');
+   * 
+   *  $to = array(
+   *            'to_name' => 'Mike Smith',
+   *            'to_firm' => 'XYZ Inc.',
+   *            'to_address1' => '456 2nd St.',
+   *            'to_address2' => 'Apt B',
+   *            'to_city' => 'Othertown',
+   *            'to_state' => 'NY',
+   *            'to_zip5' => '67890');
+   * 
+   * $dimensions = array(
+   *            'width' => 5.5,
+   *            'length' => 11,
+   *            'height' => 11,
+   *            'girth' => 11);
+   * 
+   * $service_type can be Priority, First Class, Standard Post, Medial Mail or Library Mail
+   * $container can be VARIABLE, RECTANGULAR, NONRECTANGULAR, FLAT RATE ENVELOPE, FLAT RATE BOX, etc.
+   * $dimensions array is REQUIRED when SIZE == LARGE
+   * @access public
+   * @return simple xml object - the <DeliveryConfirmationLabel> node of the response XML is a base64 binary image (the label)
+   */
+   function get_shipping_label($from = array(), $to = array(), $weight_in_ounces, $service_type, $dimensions = array(), $container = "VARIABLE", $size = "REGULAR", $insured_amount = 0)
+  {
+	$xml = '<DelivConfirmCertifyV4.0Request USERID="'.$this->user_id.'">';
+	$xml .= '<Revision>2</Revision>';
+	$xml .= '<ImageParameters />'; //Not yet implemented by this function
+        
+        /**
+         * The FROM (origination) information
+         */
+        $xml .= '<FromName>'.$from['from_name'].'</FromName>';
+        $xml .= '<FromFirm>'.isset($from['from_firm'])? $from['from_firm'] : ''.'</FromFirm>'; //can be blank
+        //Address 1 and Address 2 are reverse from what is typically standard
+        $xml .= '<FromAddress1>'.isset($from['from_address2']) ? $from['from_address2'] : ''.'</FromAddress1>';
+	$xml .= '<FromAddress2>'.$from['from_address1'].'</FromAddress2>';
+        $xml .= '<FromCity>'.$from['from_city'].'</FromCity>';
+        $xml .= '<FromState>'.strtoupper($from['from_state']).'</FromState>';
+        $xml .= '<FromZip5>'.$from['from_zip5'].'</FromZip5>';
+        $xml .= '<FromZip4/>'; //Not yet implemented
+        
+        /**
+         * The TO (destination) information
+         */
+        $xml .= '<ToName>'.$to['to_name'].'</ToName>';
+        $xml .= '<ToFirm>'.isset($to['to_firm'])? $to['to_firm'] : ''.'</ToFirm>'; //can be blank
+        //Address 1 and Address 2 are reverse from what is typically standard
+        $xml .= '<ToAddress1>'.isset($to['to_address2']) ? $to['to_address2'] : ''.'</ToAddress1>';
+	$xml .= '<ToAddress2>'.$to['to_address1'].'</ToAddress2>';
+        $xml .= '<ToCity>'.$to['to_city'].'</ToCity>';
+        $xml .= '<ToState>'.strtoupper($to['to_state']).'</ToState>';
+        $xml .= '<ToZip5>'.$to['to_zip5'].'</ToZip5>';
+        $xml .= '<ToZip4/>'; //Not yet implemented
+        
+        /**
+         * Container Type, Weight and Size plus requested Service
+         */
+        $xml .= '<WeightInOunces>'.$weight_in_ounces.'</WeightInOunces>';
+        $xml .= '<ServiceType>'.$service_type.'</ServiceType>';
+        if ($insured_amount > 0) $xml .= '<InsuredAmount>'.$insured_amount.'</InsuredAmount>';
+        $xml .= '<ImageType>PDF</ImageType>'; //Eventually could make this an option in the parameters - either PDF, TIF or GIF is accepted by API
+        $xml .= '<Container>'.strtoupper($container).'</Container>';
+        $xml .= '<Size>'.strtoupper($size).'</Size>';
+        
+        if (!empty($dimensions) || strtoupper($size) == "LARGE"){
+            //just in case $dimensions is not set and SIZE is LARGE, some default dimensions are provided to prevent failure
+            $xml .= '<Width>'.isset($dimensions['width']) ? $dimensions['width'] : '12'.'</Width>';
+            $xml .= '<Length>'.isset($dimensions['length']) ? $dimensions['width'] : '12'.'</Length>';
+            $xml .= '<Height>'.isset($dimensions['height']) ? $dimensions['height'] : '12'.'</Height>';
+            $xml .= '<Girth>'.isset($dimensions['girth']) ? $dimensions['girth'] : '60'.'</Girth>';
+        }
+        
+	$xml .= '</DelivConfirmCertifyV4.0Request>';
+	
+	return $this->_request('DelivConfirmCertifyV4Request',$xml);
+  }
+  
+  
    /**
    * Request
    * @desc: Make a request to the USPS API
