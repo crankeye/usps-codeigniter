@@ -259,7 +259,7 @@ class USPS {
    * @access public
    * @return simple xml object - the <DeliveryConfirmationLabel> node of the response XML is a base64 binary image (the label)
    */
-   function get_shipping_label($from = array(), $to = array(), $weight_in_ounces, $service_type, $dimensions = array(), $container = "VARIABLE", $size = "REGULAR", $insured_amount = 0)
+   function get_shipping_label($from, $to, $weight_in_ounces, $service_type, $dimensions = array(), $container = "VARIABLE", $size = "REGULAR", $insured_amount = 0)
   {
 	$xml = '<DelivConfirmCertifyV4.0Request USERID="'.$this->user_id.'">';
 	$xml .= '<Revision>2</Revision>';
@@ -311,7 +311,7 @@ class USPS {
         
 	$xml .= '</DelivConfirmCertifyV4.0Request>';
 	
-	return $this->_request('DelivConfirmCertifyV4Request',$xml);
+	return $this->_request('DelivConfirmCertifyV4',$xml);
   }
   
   
